@@ -1,0 +1,67 @@
+name: Stage Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        required: true
+        description: The branch to release 
+      author_name:
+        type: string
+        required: true
+        description: The name of the release author
+      author_email:
+        type: string
+        required: true
+        description: The email of the release author
+      reviewer_name:
+        type: string
+        required: true
+        description: The name of the reviewer
+      reviewer_email:
+        type: string
+        required: true
+        description: The email of the reviewer
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    runs-on: linux-builder 
+    steps:
+    - name: Clean the workspace
+      run: |
+        rm -rf openssl
+        rm -rf tools
+        rm -f ~/.gitconfig
+    - name: Setup git config
+      run: |
+        git config --global user.name "${{ github.event.inputs.author_name }}"
+        git config --global user.email "${{ github.event.inputs.author_email }}"
+    - name: Get release tools
+      run: |
+        git clone https://github.com/openssl/tools.git
+        echo "$GITHUB_WORKSPACE/tools/release-tools/" >> $GITHUB_PATH
+        echo "$GITHUB_WORKSPACE/tools/review-tools/" >> $GITHUB_PATH
+        echo "PERL5LIB=$GITHUB_WORKSPACE/tools/OpenSSL-Query/lib" >> $GITHUB_ENV
+    - name: Checkout openssl
+      run: |
+        git clone https://github.com/openssl/openssl.git
+        cd openssl
+        git checkout ${{ github.event.inputs.branch }}
+    - name: get release versions 
+      shell: bash
+      run: |
+        cd openssl
+        . $GITHUB_WORKSPACE/tools/release-tools/release-aux/release-version-fn.sh
+        get_version
+        echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
+        echo "RELEASE_FILE=$RELEASE_FILE" >> $GITHUB_ENV
+    - name: check environment
+      run: env
+
+
+
+
