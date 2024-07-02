@@ -59,8 +59,32 @@ jobs:
         get_version
         echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
         echo "RELEASE_FILE=$RELEASE_FILE" >> $GITHUB_ENV
+        echo "MAJOR=$MAJOR" >> $GITHUB_ENV
+        echo "MINOR=$MINOR" >> $GITHUB_ENV
+        echo "FIX=$FIX" >> $GITHUB_ENV
+        echo "PATCH=$PATCH" >> $GITHUB_ENV
+        echo "PRE_RELEASE_TAG=$PRE_RELEASE_TAG" >> $GITHUB_ENV
+        echo "BUILD_METADATA=$BUILD_METADATA" >> $GITHUB_ENV
+        echo "RELEASE_DATE=$RELEASE_DATE" >> $GITHUB_ENV
+        echo "SHLIB_VERSION=$SHLIB_VERSION" >> $GITHUB_ENV
+        echo "_PRE_RELEASE_TAG=$_PRE_RELEASE_TAG" >> $GITHUB_ENV
+        echo "_BUILD_METADATA=$_BUILD_METADATA" >> $GITHUB_ENV
+        echo "SERIES=$SERIES" >> $GITHUB_ENV
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "FULL_VERSION=$FULL_VERSION" >> $GITHUB_ENV
+        echo "TYPE=$TYPE" >> $GITHUB_ENV
+        echo "PRE_LABEL=$PRE_LABEL" >> $GITHUB_ENV
+        echo "PRE_NUM=$PRE_NUM" >> $GITHUB_ENV
     - name: check environment
-      run: env
+      shell: bash
+      run: |
+        env
+        if [ -z "$VERSION_FILE" ]
+        then
+          echo "Failed VERSION_FILE check"
+          exit 1
+        fi
+
 
 
 
