@@ -23,6 +23,10 @@ on:
         type: string
         required: true
         description: The email of the reviewer
+      stage_options:
+        type: string
+        required: false
+        description: extra stage release script options
 
 permissions:
   contents: read
@@ -51,91 +55,9 @@ jobs:
         git clone https://github.com/openssl/openssl.git
         cd openssl
         git checkout ${{ github.event.inputs.branch }}
-    - name: get release versions 
+    - name: stage release 
       shell: bash
       working-directory: openssl
       run: |
-        . $GITHUB_WORKSPACE/tools/release-tools/release-aux/release-version-fn.sh
-        get_version
-        echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
-        echo "RELEASE_FILE=$RELEASE_FILE" >> $GITHUB_ENV
-        echo "MAJOR=$MAJOR" >> $GITHUB_ENV
-        echo "MINOR=$MINOR" >> $GITHUB_ENV
-        echo "FIX=$FIX" >> $GITHUB_ENV
-        echo "PATCH=$PATCH" >> $GITHUB_ENV
-        echo "PRE_RELEASE_TAG=$PRE_RELEASE_TAG" >> $GITHUB_ENV
-        echo "BUILD_METADATA=$BUILD_METADATA" >> $GITHUB_ENV
-        echo "RELEASE_DATE=$RELEASE_DATE" >> $GITHUB_ENV
-        echo "SHLIB_VERSION=$SHLIB_VERSION" >> $GITHUB_ENV
-        echo "_PRE_RELEASE_TAG=$_PRE_RELEASE_TAG" >> $GITHUB_ENV
-        echo "_BUILD_METADATA=$_BUILD_METADATA" >> $GITHUB_ENV
-        echo "SERIES=$SERIES" >> $GITHUB_ENV
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "FULL_VERSION=$FULL_VERSION" >> $GITHUB_ENV
-        echo "TYPE=$TYPE" >> $GITHUB_ENV
-        echo "PRE_LABEL=$PRE_LABEL" >> $GITHUB_ENV
-        echo "PRE_NUM=$PRE_NUM" >> $GITHUB_ENV
-        echo "VERSION_FILE=$VERSION_FILE"
-        echo "RELEASE_FILE=$RELEASE_FILE"
-        echo "MAJOR=$MAJOR"
-        echo "MINOR=$MINOR"
-        echo "FIX=$FIX"
-        echo "PATCH=$PATCH"
-        echo "PRE_RELEASE_TAG=$PRE_RELEASE_TAG"
-        echo "BUILD_METADATA=$BUILD_METADATA"
-        echo "RELEASE_DATE=$RELEASE_DATE"
-        echo "SHLIB_VERSION=$SHLIB_VERSION"
-        echo "_PRE_RELEASE_TAG=$_PRE_RELEASE_TAG"
-        echo "_BUILD_METADATA=$_BUILD_METADATA"
-        echo "SERIES=$SERIES"
-        echo "VERSION=$VERSION"
-        echo "FULL_VERSION=$FULL_VERSION"
-        echo "TYPE=$TYPE"
-        echo "PRE_LABEL=$PRE_LABEL"
-        echo "PRE_NUM=$PRE_NUM"
-    - name: validate environment
-      working-directory: openssl
-      shell: bash
-      run: |
-        if [ -z "$VERSION_FILE" ]
-        then
-          echo "Failed VERSION_FILE check"
-          exit 1
-        fi
-    - name: validate branch info
-      working-directory: openssl
-      shell: bash
-      run: |
-        orig_HEAD=$(git rev-parse HEAD)
-        orig_branch=$(git rev-parse --abbrev-ref HEAD)
-        orig_remote=$(git for-each-ref --format='%(push:remotename)' $(git symbolic-ref -q HEAD))
-        orig_remote_url=$(git remote get-url $orig_remote 2>/dev/null)
-        if [ $? -eq 0 ]
-        then
-          orig_remote_url="$orig_remote"
-        fi
-        orig_head=$(git rev-parse --abbrev-ref '@{u}' 2>/dev/null || git rev-parse HEAD)
-        echo "$orig_branch" | grep -E -q -e '^master$' -e '^OpenSSL_[0-9]+_[0-9]+_[0-9]+[a-z]*-stable$' -e '^openssl-[0-9]+\.[0-9]+$'
-        if [ $? -ne 0 ]
-        then
-          echo "Not in master or any recognised release branch"
-          exit 1
-        fi
-        echo "orig_HEAD=$orig_HEAD" >> $GITHUB_ENV
-        echo "orig_branch=$orig_branch" >> $GITHUB_ENV
-        echo "orig_remote=$orig_remote" >> $GITHUB_ENV
-        echo "orig_remote_url=$orig_remote_url" >> $GITHUB_ENV
-        echo "orig_HEAD=$orig_HEAD" >> $GITHUB_ENV
-        echo "orig_branch=$orig_branch" >> $GITHUB_ENV
-        echo "orig_remote=$orig_remote" >> $GITHUB_ENV
-        echo "orig_remote_url=$orig_remote_url" >> $GITHUB_ENV
-        echo "orig_HEAD=$orig_HEAD"
-        echo "orig_branch=$orig_branch"
-        echo "orig_remote=$orig_remote"
-        echo "orig_remote_url=$orig_remote_url"
-        echo "orig_HEAD=$orig_HEAD"
-        echo "orig_branch=$orig_branch"
-        echo "orig_remote=$orig_remote"
-        echo "orig_remote_url=$orig_remote_url"
-
+        stage-release.sh ${{ github.event.inputs.stage_options }} --reviewer=${{ github.event.inputs.reviewer_email }} --unsigned --no-upload 
 
